@@ -1,7 +1,7 @@
 package symptom
 
 import (
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/muxy"
 	"log"
 )
 

@@ -4,7 +4,7 @@ package command
 import (
 	"os"
 
-	m "github.com/mefellows/muxy/run"
+	m "github.com/YangYongZhi/muxy/run"
 	pki "github.com/mefellows/pkigo/command"
 	"github.com/mitchellh/cli"
 )

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/muxy"
 )
 
 func TestMatchSymptom_Hit(t *testing.T) {

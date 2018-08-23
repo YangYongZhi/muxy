@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mefellows/muxy/log"
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/log"
+	"github.com/YangYongZhi/muxy/muxy"
 )
 
 // FilterFunc is a function that is called to process a proxy response

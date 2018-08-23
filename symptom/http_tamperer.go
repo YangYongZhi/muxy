@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mefellows/muxy/log"
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/log"
+	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
 )
 

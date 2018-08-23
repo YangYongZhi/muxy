@@ -6,7 +6,7 @@ import (
 
 	"strings"
 
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/tylertreat/comcast/throttler"
 )
 

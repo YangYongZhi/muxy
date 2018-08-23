@@ -8,11 +8,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/mefellows/muxy/log"
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/log"
+	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
-	"github.com/tylertreat/comcast/throttler"
+	"github.com/YangYongZhi/muxy/throttler"
 )
 
 // NetworkShaperSymptom allows you to modify the network speed on a host
@@ -41,10 +40,12 @@ func init() {
 
 // Setup sets up the plugin
 func (s *NetworkShaperSymptom) Setup() {
-	log.Debug("NetworkShaperSymptom - Setup()")
+	log.Debug("NetworkShaperSymptom - start setup")
 
 	ports := parsePorts(strings.Join(s.TargetPorts, ","))
+	log.Debug("NetworkShaperSymptom - ports %s", ports)
 	targetIPv4, targetIPv6 := parseAddrs(strings.Join(append(s.TargetIps, s.TargetIps6...), ","))
+	log.Debug("NetworkShaperSymptom - IPv4 %s \nIPv6 %s")
 
 	s.config = throttler.Config{
 		Device:           s.Device,
@@ -59,12 +60,20 @@ func (s *NetworkShaperSymptom) Setup() {
 		DryRun:           false,
 	}
 
+
+
 	executeThrottler(&s.config)
+
+	log.Debug("NetworkShaperSymptom has been setup")
+
 }
 
 var executeThrottler = func(config *throttler.Config) {
+	log.Debug("NetworkShaperSymptom - start to execute throttler [network shape]")
 	supressOutput(func() {
+		log.Debug("thottler - start to run [network shape]")
 		throttler.Run(config)
+		log.Debug("NetworkShaperSymptom - end to run [network shape]")
 	})
 }
 
@@ -90,12 +99,18 @@ func (s *NetworkShaperSymptom) Teardown() {
 
 // Supress output of function to keep logs clean
 func supressOutput(f func()) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("supressOutput", err)
+		}
+	}()
+
 	old := os.Stdout
 	oldErr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 	os.Stderr = w
-	l.SetOutput(w)
+	//l.SetOutput(w)
 
 	f()
 

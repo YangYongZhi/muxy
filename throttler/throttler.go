@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/YangYongZhi/muxy/log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -56,15 +57,18 @@ var dry bool
 func setup(t throttler, cfg *Config) {
 	if t.exists() {
 		fmt.Println("It looks like the packet rules are already setup")
+		log.Debug("It looks like the packet rules are already setup")
 		os.Exit(1)
 	}
 
 	if err := t.setup(cfg); err != nil {
 		fmt.Println("I couldn't setup the packet rules:", err.Error())
+		log.Debug("I couldn't setup the packet rules:" + err.Error())
 		os.Exit(1)
 	}
 
 	fmt.Println("Packet rules setup...")
+	log.Debug("Packet rules setup...")
 	fmt.Printf("Run `%s` to double check\n", t.check())
 	fmt.Printf("Run `%s --device %s --stop` to reset\n", os.Args[0], cfg.Device)
 }
@@ -88,6 +92,7 @@ func teardown(t throttler, cfg *Config) {
 // Run executes the packet filter operation, either setting it up or tearing
 // it down.
 func Run(cfg *Config) {
+	log.Debug("Start to run")
 	dry = cfg.DryRun
 	var t throttler
 	var c commander
@@ -98,6 +103,7 @@ func Run(cfg *Config) {
 		c = &shellCommander{}
 	}
 
+	log.Debug("Your OS is %s", runtime.GOOS)
 	switch runtime.GOOS {
 	case freebsd:
 		if cfg.Device == "" {
@@ -125,17 +131,22 @@ func Run(cfg *Config) {
 		if cfg.Device == "" {
 			cfg.Device = "eth0"
 		}
-
 		t = &tcThrottler{c}
 	default:
 		fmt.Printf("I don't support your OS: %s\n", runtime.GOOS)
 		os.Exit(1)
 	}
 
+	log.Debug("Your device is %s", cfg.Device)
+
 	if !cfg.Stop {
+		log.Debug("Start to setup")
 		setup(t, cfg)
+		log.Debug("Finish to setup")
 	} else {
+		log.Debug("Start to teardown")
 		teardown(t, cfg)
+		log.Debug("Finish to teardown")
 	}
 }
 

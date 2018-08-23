@@ -9,7 +9,7 @@ import (
 
 	"io/ioutil"
 
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/muxy"
 )
 
 func TestHTTPTampererSymptom_CreateCookieHeader(t *testing.T) {

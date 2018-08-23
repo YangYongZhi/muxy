@@ -2,6 +2,7 @@ package throttler
 
 import (
 	"fmt"
+	"github.com/YangYongZhi/muxy/log"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ const (
 	tcTargetClass  = `dev %s parent 10: classid 10:10`
 	tcNetemRule    = `dev %s parent 10:10 handle 100:`
 	tcRate         = `rate %vkbit`
+	tcCbq          = `cbq avpkt 1000 bandwidth %vkbit`
 	tcDelay        = `delay %vms`
 	tcLoss         = `loss %v%%`
 	tcAddClass     = `sudo tc class add`
@@ -25,8 +27,8 @@ const (
 	iptDelTarget   = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
 	iptDestIP      = `-d %s`
 	iptProto       = `-p %s`
-	iptDestPorts   = `--match multiport --dports %s`
-	iptDestPort    = `--dport %s`
+	iptDestPorts   = `--match multiport --sports %s`
+	iptDestPort    = `--sport %s`
 	iptDelSearch   = `class 0010:0010`
 	iptList        = `sudo %s -S -t mangle`
 	ip4Tables      = `iptables`
@@ -41,22 +43,38 @@ type tcThrottler struct {
 }
 
 func (t *tcThrottler) setup(cfg *Config) error {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("tc setup %s", err)
+		}
+	}()
+
 	err := addRootQDisc(cfg, t.c) //The root node to append the filters
+	log.Debug("addRootQDisc error : %s", err)
 	if err != nil {
 		return err
 	}
 
 	err = addDefaultClass(cfg, t.c) //The default class for all traffic that isn't classified
+	log.Debug("addDefaultClass error : %s", err)
 	if err != nil {
 		return err
 	}
 
 	err = addTargetClass(cfg, t.c) //The class that the network emulator rule is assigned
+	log.Debug("addTargetClass error : %s", err)
 	if err != nil {
 		return err
 	}
 
+	//err = addRate(cfg, t.c) //The class that the network emulator rule is assigned
+	//log.Debug("addRate error : %s", err)
+	//if err != nil {
+	//	return err
+	//}
+
 	err = addNetemRule(cfg, t.c) //The network emulator rule that contains the desired behavior
+	log.Debug("addNetemRule error : %s", err)
 	if err != nil {
 		return err
 	}
@@ -69,6 +87,9 @@ func addRootQDisc(cfg *Config, c commander) error {
 	root := fmt.Sprintf(tcRootQDisc, cfg.Device)
 	strs := []string{tcAddQDisc, root, "htb", tcRootExtra}
 	cmd := strings.Join(strs, " ")
+
+	log.Debug("Adding root qdisc :")
+	log.Error(cmd)
 
 	return c.execute(cmd)
 }
@@ -87,6 +108,9 @@ func addDefaultClass(cfg *Config, c commander) error {
 	strs := []string{tcAddClass, def, "htb", rate}
 	cmd := strings.Join(strs, " ")
 
+	log.Debug("Adding default class :")
+	log.Error(cmd)
+
 	return c.execute(cmd)
 }
 
@@ -95,6 +119,7 @@ func addTargetClass(cfg *Config, c commander) error {
 	tar := fmt.Sprintf(tcTargetClass, cfg.Device)
 	rate := ""
 
+	// tc qdisc add dev eth0 root handle 1:0 tbf rate 256kbit buffer 1600 limit 3000
 	if cfg.TargetBandwidth > -1 {
 		rate = fmt.Sprintf(tcRate, cfg.TargetBandwidth)
 	} else {
@@ -102,7 +127,49 @@ func addTargetClass(cfg *Config, c commander) error {
 	}
 
 	strs := []string{tcAddClass, tar, "htb", rate}
+
+	// use cbq
+	//if cfg.TargetBandwidth > -1 {
+	//	rate = fmt.Sprintf(tcCbq, cfg.TargetBandwidth)
+	//} else {
+	//	rate = fmt.Sprintf(tcCbq, 1000000)
+	//}
+	//strs := []string{tcAddClass, tar, rate}
+
 	cmd := strings.Join(strs, " ")
+
+	log.Debug("Adding target class :")
+	log.Error(cmd)
+
+	return c.execute(cmd)
+}
+
+func addRate(cfg *Config, c commander) error {
+	//Add the target Class
+	//tar := fmt.Sprintf(tcTargetClass, cfg.Device)
+	rate := ""
+
+	if cfg.TargetBandwidth > -1 {
+		rate = fmt.Sprintf(tcRate, cfg.TargetBandwidth)
+	} else {
+		rate = fmt.Sprintf(tcRate, 1000000)
+	}
+
+	// tc qdisc add dev eth0 root handle 1:0 tbf rate 256kbit buffer 1600 limit 3000
+	strs := []string{"sudo tc qdisc add dev eth0 parent 10: handle 10:10 tbf", rate, "buffer 1600 limit 3000"}
+
+	// use cbq
+	//if cfg.TargetBandwidth > -1 {
+	//	rate = fmt.Sprintf(tcCbq, cfg.TargetBandwidth)
+	//} else {
+	//	rate = fmt.Sprintf(tcCbq, 1000000)
+	//}
+	//strs := []string{tcAddClass, tar, rate}
+
+	cmd := strings.Join(strs, " ")
+
+	log.Debug("addRate : \n")
+	log.Error(cmd)
 
 	return c.execute(cmd)
 }
@@ -116,8 +183,11 @@ func addNetemRule(cfg *Config, c commander) error {
 		strs = append(strs, fmt.Sprintf(tcDelay, cfg.Latency))
 	}
 
+	log.Debug("TargetBandwidth: %d", cfg.TargetBandwidth)
+
 	if cfg.TargetBandwidth > -1 {
-		strs = append(strs, fmt.Sprintf(tcRate, cfg.TargetBandwidth))
+		// If you used 'rate' in netem, it will has an error.
+		//strs = append(strs, fmt.Sprintf(tcRate, cfg.TargetBandwidth))
 	}
 
 	if cfg.PacketLoss > 0 {
@@ -125,6 +195,9 @@ func addNetemRule(cfg *Config, c commander) error {
 	}
 
 	cmd := strings.Join(strs, " ")
+
+	log.Debug("Adding a netem rule :")
+	log.Error(cmd)
 
 	return c.execute(cmd)
 }
@@ -137,6 +210,7 @@ func addIptablesRules(cfg *Config, c commander) error {
 	if err == nil && len(cfg.TargetIps6) > 0 {
 		err = addIptablesRulesForAddrs(cfg, c, ip6Tables, cfg.TargetIps6)
 	}
+	log.Error("addIptablesRules error %s", err.Error())
 	return err
 }
 
@@ -144,6 +218,7 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 	rules := []string{}
 	ports := ""
 
+	log.Debug("cfg.TargetPorts : %s", cfg.TargetPorts)
 	if len(cfg.TargetPorts) > 0 {
 		if len(cfg.TargetPorts) > 1 {
 			prts := strings.Join(cfg.TargetPorts, ",")
@@ -153,7 +228,12 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 		}
 	}
 
+	log.Debug("ports : %s", ports)
+
 	addTargetCmd := fmt.Sprintf(iptAddTarget, command)
+
+	log.Debug("addIptablesRulesForAddrs :")
+	log.Warn(addTargetCmd)
 
 	if len(cfg.TargetProtos) > 0 {
 		for _, ptc := range cfg.TargetProtos {
@@ -190,7 +270,9 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 		}
 	}
 
+	log.Debug("Final rule for iptables :")
 	for _, rule := range rules {
+		log.Error(rule)
 		if err := c.execute(rule); err != nil {
 			return err
 		}
@@ -200,6 +282,8 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 }
 
 func (t *tcThrottler) teardown(cfg *Config) error {
+	log.Debug("Start teardown...")
+
 	if err := delIptablesRules(cfg, t.c); err != nil {
 		return err
 	}
@@ -241,7 +325,11 @@ func delIptablesRules(cfg *Config, c commander) error {
 		for _, line := range lines {
 			if strings.Contains(line, iptDelSearch) {
 				cmd := strings.Replace(line, "-A", delCmdPrefix, 1)
+				log.Debug("Deleting Iptables rule :")
+
+				log.Error(cmd)
 				err = c.execute(cmd)
+
 				if err != nil {
 					return err
 				}
@@ -257,6 +345,9 @@ func delRootQDisc(cfg *Config, c commander) error {
 
 	strs := []string{tcDelQDisc, root}
 	cmd := strings.Join(strs, " ")
+
+	log.Debug("Deleting root qdisc :")
+	log.Error(cmd)
 
 	return c.execute(cmd)
 }

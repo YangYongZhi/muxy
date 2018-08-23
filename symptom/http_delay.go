@@ -2,9 +2,8 @@ package symptom
 
 import (
 	"time"
-
-	"github.com/mefellows/muxy/log"
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/log"
+	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
 )
 
@@ -30,7 +29,7 @@ func init() {
 
 // Setup sets up the delay plugin
 func (m *HTTPDelaySymptom) Setup() {
-	log.Debug("Delay Symptom - Setup()")
+	log.Debug("Start to sets up the delay plugin")
 
 	// Add default (catch all) matching rule
 	// Only applicable if none supplied
@@ -43,7 +42,7 @@ func (m *HTTPDelaySymptom) Setup() {
 
 // Teardown shuts down the plugin
 func (m *HTTPDelaySymptom) Teardown() {
-	log.Debug("Delay Symptom - Teardown()")
+	log.Debug("Start to tear down the delay plugin")
 }
 
 // HandleEvent takes a proxy event for the proxy to intercept and modify

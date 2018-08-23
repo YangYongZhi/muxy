@@ -22,7 +22,7 @@ updatedeps:
 	go get -u golang.org/x/tools/cmd/stringer
 	go list ./... \
 		| xargs go list -f '{{join .Deps "\n"}}' \
-		| grep -v github.com/mefellows/muxy \
+		| grep -v github.com/YangYongZhi/muxy \
 		| grep -v '/internal/' \
 		| sort -u \
 		| xargs go get -f -u -v

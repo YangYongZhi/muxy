@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/mefellows/muxy",
+	"ImportPath": "github.com/YangYongZhi/muxy",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
 	"Deps": [

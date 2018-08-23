@@ -3,7 +3,7 @@ package symptom
 import (
 	"testing"
 
-	"github.com/mefellows/muxy/muxy"
+	"github.com/YangYongZhi/muxy/muxy"
 )
 
 var newRequestBody = "new request body"
