@@ -89,7 +89,7 @@ func addRootQDisc(cfg *Config, c commander) error {
 	cmd := strings.Join(strs, " ")
 
 	log.Debug("Adding root qdisc :")
-	log.Error(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 
 	return c.execute(cmd)
 }
@@ -109,7 +109,7 @@ func addDefaultClass(cfg *Config, c commander) error {
 	cmd := strings.Join(strs, " ")
 
 	log.Debug("Adding default class :")
-	log.Error(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 
 	return c.execute(cmd)
 }
@@ -139,7 +139,7 @@ func addTargetClass(cfg *Config, c commander) error {
 	cmd := strings.Join(strs, " ")
 
 	log.Debug("Adding target class :")
-	log.Error(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 
 	return c.execute(cmd)
 }
@@ -197,7 +197,7 @@ func addNetemRule(cfg *Config, c commander) error {
 	cmd := strings.Join(strs, " ")
 
 	log.Debug("Adding a netem rule :")
-	log.Error(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 
 	return c.execute(cmd)
 }
@@ -233,7 +233,7 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 	addTargetCmd := fmt.Sprintf(iptAddTarget, command)
 
 	log.Debug("addIptablesRulesForAddrs :")
-	log.Warn(addTargetCmd)
+	log.Debug(log.Colorize(log.GREY, addTargetCmd))
 
 	if len(cfg.TargetProtos) > 0 {
 		for _, ptc := range cfg.TargetProtos {
@@ -272,7 +272,7 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 
 	log.Debug("Final rule for iptables :")
 	for _, rule := range rules {
-		log.Error(rule)
+		log.Debug(log.Colorize(log.GREEN, rule))
 		if err := c.execute(rule); err != nil {
 			return err
 		}

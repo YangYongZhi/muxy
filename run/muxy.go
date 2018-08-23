@@ -8,6 +8,7 @@ import (
 	"github.com/YangYongZhi/muxy/log"
 	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
+	"syscall"
 )
 
 // Config is the top-level configuration struct
@@ -55,7 +56,11 @@ func (m *Muxy) Run() {
 
 	// Interrupt handler
 	m.sigChan = make(chan os.Signal, 1)
-	signal.Notify(m.sigChan, os.Interrupt, os.Kill)
+	//signal.Notify(m.sigChan, os.Interrupt, os.Kill)
+	/*
+	 Support execute the teardown method when you end the debug in GoLand.
+	*/
+	signal.Notify(m.sigChan, os.Interrupt, os.Kill, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
 
 	// Start proxy
 	for _, proxy := range m.proxies {
