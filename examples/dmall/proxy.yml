@@ -1,0 +1,29 @@
+name: Network and HTTP screwer.
+description: Slow network to mobile levels, and add 1s delay to all messages
+loglevel: 1
+
+proxy:
+  - name: http_proxy
+    config:
+      host: 0.0.0.0
+      port: 8527
+      protocol: http
+      proxy_host: 192.168.8.228
+      proxy_port: 8527
+      proxy_protocol: http
+  - name: tcp_proxy
+    config:
+      host: 0.0.0.0           # Local address to bind to and accept connections. May be an IP/hostname
+      port: 9527              # Local port to bind to
+      proxy_host: 192.168.8.228     # Proxy server port
+      proxy_port: 9527        # Proxied server port
+      nagles_algorithm: true  # Use Nagles algorithm?
+      packet_size: 64         # Size of each contiguous network packet to proxy
+middleware:
+  - name: logger
+    config:
+      hex_output: false
+  - name: delay
+    config:
+      request_delay: 2000
+      response_delay: 1500
