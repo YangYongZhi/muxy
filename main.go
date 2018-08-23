@@ -20,7 +20,7 @@ func main() {
 
 func realMain() int {
 	rand.Seed(time.Now().Unix())
-	cli := cli.NewCLI(strings.ToLower(ApplicationName), Version)
+	cli := cli.NewCLI(strings.ToLower("Muxy"), "0.0.5")
 	cli.Args = os.Args[1:]
 	cli.Commands = command.Commands
 

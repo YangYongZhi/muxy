@@ -103,7 +103,7 @@ func Run(cfg *Config) {
 		c = &shellCommander{}
 	}
 
-	log.Debug("Your OS is %s", runtime.GOOS)
+	log.Debug("Your OS \t" + log.Colorize(log.YELLOW, runtime.GOOS))
 	switch runtime.GOOS {
 	case freebsd:
 		if cfg.Device == "" {
@@ -137,7 +137,7 @@ func Run(cfg *Config) {
 		os.Exit(1)
 	}
 
-	log.Debug("Your device is %s", cfg.Device)
+	log.Debug("Your device \t" + log.Colorize(log.YELLOW, cfg.Device))
 
 	if !cfg.Stop {
 		log.Debug("Start to setup")

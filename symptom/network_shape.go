@@ -45,7 +45,7 @@ func (s *NetworkShaperSymptom) Setup() {
 	ports := parsePorts(strings.Join(s.TargetPorts, ","))
 	log.Debug("NetworkShaperSymptom - ports %s", ports)
 	targetIPv4, targetIPv6 := parseAddrs(strings.Join(append(s.TargetIps, s.TargetIps6...), ","))
-	log.Debug("NetworkShaperSymptom - IPv4 %s \nIPv6 %s")
+	log.Debug("NetworkShaperSymptom - \tIPv4 %s \tIPv6 %s")
 
 	s.config = throttler.Config{
 		Device:           s.Device,
