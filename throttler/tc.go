@@ -224,7 +224,7 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 		}
 	}
 
-	log.Debug("ports :" + log.Colorize(log.GREEN, ports))
+	log.Debug("ports :" + log.Colorize(log.YELLOW, ports))
 
 	addTargetCmd := fmt.Sprintf(iptAddTarget, command)
 

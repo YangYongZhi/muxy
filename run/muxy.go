@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 
+	h "github.com/YangYongZhi/muxy/api/http"
 	"github.com/YangYongZhi/muxy/log"
 	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
@@ -66,6 +67,9 @@ func (m *Muxy) Run() {
 	for _, proxy := range m.proxies {
 		go proxy.Proxy()
 	}
+
+	var httpServer = h.New("Http api server")
+	go httpServer.Start()
 
 	// Block until a signal is received.
 	<-m.sigChan
