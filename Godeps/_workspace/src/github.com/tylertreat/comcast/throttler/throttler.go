@@ -55,32 +55,32 @@ var dry bool
 
 func setup(t throttler, cfg *Config) {
 	if t.exists() {
-		fmt.Println("It looks like the packet rules are already setup")
+		log.Debug("It looks like the packet rules are already setup")
 		os.Exit(1)
 	}
 
 	if err := t.setup(cfg); err != nil {
-		fmt.Println("I couldn't setup the packet rules:", err.Error())
+		log.Debug("I couldn't setup the packet rules:", err.Error())
 		os.Exit(1)
 	}
 
-	fmt.Println("Packet rules setup...")
+	log.Debug("Packet rules setup...")
 	fmt.Printf("Run `%s` to double check\n", t.check())
 	fmt.Printf("Run `%s --device %s --stop` to reset\n", os.Args[0], cfg.Device)
 }
 
 func teardown(t throttler, cfg *Config) {
 	if !t.exists() {
-		fmt.Println("It looks like the packet rules aren't setup")
+		log.Debug("It looks like the packet rules aren't setup")
 		os.Exit(1)
 	}
 
 	if err := t.teardown(cfg); err != nil {
-		fmt.Println("Failed to stop packet controls")
+		log.Debug("Failed to stop packet controls")
 		os.Exit(1)
 	}
 
-	fmt.Println("Packet rules stopped...")
+	log.Debug("Packet rules stopped...")
 	fmt.Printf("Run `%s` to double check\n", t.check())
 	fmt.Printf("Run `%s` to start\n", os.Args[0])
 }

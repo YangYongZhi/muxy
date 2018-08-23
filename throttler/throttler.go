@@ -56,43 +56,40 @@ var dry bool
 
 func setup(t throttler, cfg *Config) {
 	if t.exists() {
-		fmt.Println("It looks like the packet rules are already setup")
 		log.Debug("It looks like the packet rules are already setup")
 		os.Exit(1)
 	}
 
 	if err := t.setup(cfg); err != nil {
-		fmt.Println("I couldn't setup the packet rules:", err.Error())
 		log.Debug("I couldn't setup the packet rules:" + err.Error())
 		os.Exit(1)
 	}
 
-	fmt.Println("Packet rules setup...")
 	log.Debug("Packet rules setup...")
-	fmt.Printf("Run `%s` to double check\n", t.check())
-	fmt.Printf("Run `%s --device %s --stop` to reset\n", os.Args[0], cfg.Device)
+	log.Debug("Run `%s` to double check\n", t.check())
+	log.Debug("Run `%s --device %s --stop` to reset\n", os.Args[0], cfg.Device)
 }
 
 func teardown(t throttler, cfg *Config) {
 	if !t.exists() {
-		fmt.Println("It looks like the packet rules aren't setup")
+		log.Debug("It looks like the packet rules aren't setup")
 		os.Exit(1)
 	}
 
 	if err := t.teardown(cfg); err != nil {
-		fmt.Println("Failed to stop packet controls")
+		log.Debug("Failed to stop packet controls")
 		os.Exit(1)
 	}
 
-	fmt.Println("Packet rules stopped...")
-	fmt.Printf("Run `%s` to double check\n", t.check())
-	fmt.Printf("Run `%s` to start\n", os.Args[0])
+	log.Debug("Packet rules stopped...")
+	log.Debug("Run `%s` to double check\n", t.check())
+	log.Debug("Run `%s` to start\n", os.Args[0])
 }
 
 // Run executes the packet filter operation, either setting it up or tearing
 // it down.
 func Run(cfg *Config) {
-	log.Debug("Start to run")
+	log.Debug("Start to run a throttler")
 	dry = cfg.DryRun
 	var t throttler
 	var c commander
@@ -107,7 +104,7 @@ func Run(cfg *Config) {
 	switch runtime.GOOS {
 	case freebsd:
 		if cfg.Device == "" {
-			fmt.Println("Device not specified, unable to default to eth0 on FreeBSD.")
+			log.Debug("Device not specified, unable to default to eth0 on FreeBSD.")
 			os.Exit(1)
 		}
 
@@ -119,7 +116,7 @@ func Run(cfg *Config) {
 		} else if c.commandExists(ipfw) {
 			t = &ipfwThrottler{c}
 		} else {
-			fmt.Println("Could not determine an appropriate firewall tool for OSX (tried pfctl, ipfw), exiting")
+			log.Debug("Could not determine an appropriate firewall tool for OSX (tried pfctl, ipfw), exiting")
 			os.Exit(1)
 		}
 
@@ -133,30 +130,30 @@ func Run(cfg *Config) {
 		}
 		t = &tcThrottler{c}
 	default:
-		fmt.Printf("I don't support your OS: %s\n", runtime.GOOS)
+		log.Debug("I don't support your OS: %s\n", runtime.GOOS)
 		os.Exit(1)
 	}
 
 	log.Debug("Your device \t" + log.Colorize(log.YELLOW, cfg.Device))
 
 	if !cfg.Stop {
-		log.Debug("Start to setup")
+		log.Debug("Start to setup throttler")
 		setup(t, cfg)
 		log.Debug("Finish to setup")
 	} else {
-		log.Debug("Start to teardown")
+		log.Debug("Start to teardown throttler")
 		teardown(t, cfg)
 		log.Debug("Finish to teardown")
 	}
 }
 
 func (c *dryRunCommander) execute(cmd string) error {
-	fmt.Println(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 	return nil
 }
 
 func (c *dryRunCommander) executeGetLines(cmd string) ([]string, error) {
-	fmt.Println(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 	return []string{}, nil
 }
 
@@ -165,12 +162,14 @@ func (c *dryRunCommander) commandExists(cmd string) bool {
 }
 
 func (c *shellCommander) execute(cmd string) error {
-	fmt.Println(cmd)
+	log.Debug(log.Colorize(log.GREEN, cmd))
 	return exec.Command("/bin/sh", "-c", cmd).Run()
 }
 
 func (c *shellCommander) executeGetLines(cmd string) ([]string, error) {
 	lines := []string{}
+
+	log.Debug("executeGetLines: " + log.Colorize(log.GREEN, cmd))
 	child := exec.Command("/bin/sh", "-c", cmd)
 
 	out, err := child.StdoutPipe()

@@ -19,11 +19,13 @@ middleware:
  #            
   - name: network_shape
     config:
+      device:      ens33
       latency:     800        # Latency to add in ms
       target_bw:   3         # Bandwidth in kbits/s
       packet_loss: 30         # Packet loss, as a %
       target_ips:              # Target ipv4 IP addresses/CIDRs
-        - "10.12.194.192"
+        #- "10.12.194.192"
+        - "0.0.0.0/0"
       target_ips6:             # Target ipv6 IP addresses
         - "::1/128"
       target_ports:            # Target destination ports
@@ -31,8 +33,9 @@ middleware:
         - "5001,8527"
       target_protos:           # Target protocols
         - "icmp"
-  - name: network_shape_test
+  - name: network_shape
     config:
+      device:      ens33
       latency:     1500     
       target_bw:   30         
       packet_loss: 80     
