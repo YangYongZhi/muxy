@@ -34,7 +34,7 @@ func (l *LoggerMiddleware) Setup() {
 }
 
 // Teardown shuts down the middleware
-func (LoggerMiddleware) Teardown() {
+func (l *LoggerMiddleware) Teardown() {
 	log.Debug("Tear down the logger plugin")
 }
 

@@ -9,7 +9,11 @@ import (
 	"github.com/YangYongZhi/muxy/throttler"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"time"
+
+	"github.com/YangYongZhi/muxy/middleware"
+	"github.com/YangYongZhi/muxy/symptom"
 )
 
 const (
@@ -60,12 +64,43 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Debug("The parameters for create some new middlewares on current muxy: %s", body_str)
 
+		for _, m := range Muxy.MiddleWares() {
+			log.Debug("%s", reflect.TypeOf(m))
+
+			switch v := m.(type) {
+			case *middleware.LoggerMiddleware:
+				log.Debug("Not support %v now.", v)
+			case *symptom.HTTPDelaySymptom:
+				log.Debug("Not support %v now.", v)
+			case *symptom.NetworkShaperSymptom:
+				v.Teardown()
+
+				v.Device = config.Device
+				v.Latency = config.Latency
+				v.PacketLoss = config.PacketLoss
+				v.TargetBandwidth = config.TargetBandwidth
+				v.TargetPorts = config.TargetPorts
+				v.TargetProtos = config.TargetProtos
+
+				v.Config.Device = config.Device
+				v.Config.Latency = config.Latency
+				v.Config.PacketLoss = config.PacketLoss
+				v.Config.TargetBandwidth = config.TargetBandwidth
+				v.Config.TargetPorts = config.TargetPorts
+				v.Config.TargetProtos = config.TargetProtos
+
+				v.Setup()
+			}
+
+		}
+
 		log.Info("Create some middleware for current Muxy successfully")
 		fmt.Fprint(w, "Create a new network shape successfully.")
 	case "restart":
 		log.Info("Restart Muxy, please wait.")
 
 		for _, m := range Muxy.MiddleWares() {
+			log.Info("Setup type %s", reflect.TypeOf(m))
 			m.Setup()
 		}
 
@@ -74,6 +109,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("Then shutting down Muxy, please wait.")
 
 		for _, m := range Muxy.MiddleWares() {
+			log.Info("Tear down type %s", reflect.TypeOf(m))
 			m.Teardown()
 		}
 

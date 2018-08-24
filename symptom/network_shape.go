@@ -17,7 +17,7 @@ import (
 // NetworkShaperSymptom allows you to modify the network speed on a host
 // e.g. shape bandwidth to mobile, slower speeds
 type NetworkShaperSymptom struct {
-	config           throttler.Config
+	Config           throttler.Config
 	Device           string
 	Latency          int      `default:"-1"`
 	TargetBandwidth  int      `mapstructure:"target_bw" default:"-1"`
@@ -47,7 +47,7 @@ func (s *NetworkShaperSymptom) Setup() {
 	targetIPv4, targetIPv6 := parseAddrs(strings.Join(append(s.TargetIps, s.TargetIps6...), ","))
 	log.Debug("NetworkShaperSymptom - \tIPv4 %s \tIPv6 %s")
 
-	s.config = throttler.Config{
+	s.Config = throttler.Config{
 		Device:           s.Device,
 		Latency:          s.Latency,
 		TargetBandwidth:  s.TargetBandwidth,
@@ -62,7 +62,7 @@ func (s *NetworkShaperSymptom) Setup() {
 
 
 
-	executeThrottler(&s.config)
+	executeThrottler(&s.Config)
 
 	log.Debug("NetworkShaperSymptom has been setup")
 
@@ -93,8 +93,8 @@ func (s *NetworkShaperSymptom) Muck(ctx *muxy.Context) {
 // Teardown shuts down the plugin
 func (s *NetworkShaperSymptom) Teardown() {
 	log.Debug("NetworkShaperSymptom - Teardown()")
-	s.config.Stop = true
-	executeThrottler(&s.config)
+	s.Config.Stop = true
+	executeThrottler(&s.Config)
 }
 
 // Supress output of function to keep logs clean
