@@ -78,6 +78,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.Teardown()
 
 				// We should sleep this current goroutine in order to make the ip tables change less frequently.
+				log.Debug("We should sleep this current goroutine in order to make the ip tables change less frequently.")
 				time.Sleep(5 * time.Second)
 
 				v.Device = config.Device

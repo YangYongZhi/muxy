@@ -50,20 +50,23 @@ func (t *tcThrottler) setup(cfg *Config) error {
 	}()
 
 	err := addRootQDisc(cfg, t.c) //The root node to append the filters
-	log.Debug("addRootQDisc error : %s", err)
+
 	if err != nil {
+		log.Debug("addRootQDisc error : %s", err)
 		return err
 	}
 
 	err = addDefaultClass(cfg, t.c) //The default class for all traffic that isn't classified
-	log.Debug("addDefaultClass error : %s", err)
+
 	if err != nil {
+		log.Debug("addDefaultClass error : %s", err)
 		return err
 	}
 
 	err = addTargetClass(cfg, t.c) //The class that the network emulator rule is assigned
-	log.Debug("addTargetClass error : %s", err)
+
 	if err != nil {
+		log.Debug("addTargetClass error : %s", err)
 		return err
 	}
 
@@ -74,8 +77,9 @@ func (t *tcThrottler) setup(cfg *Config) error {
 	//}
 
 	err = addNetemRule(cfg, t.c) //The network emulator rule that contains the desired behavior
-	log.Debug("addNetemRule error : %s", err)
+
 	if err != nil {
+		log.Debug("addNetemRule error : %s", err)
 		return err
 	}
 
