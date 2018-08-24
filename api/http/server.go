@@ -42,8 +42,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		if len(middlewares) > 0 {
 			fmt.Fprintf(w, "Muxy has been start, middleware count : %d\n", len(middlewares))
 		}
-	case "new":
-		log.Info("Create new middlewares, please wait.")
+
+		//e.g. body = {"Device":"ens33","Latency": 2000, "TargetBandWidth":20,"PacketLoss":70,"TargetPorts": ["5001","10090"], "TargetProtos":["tcp","icmp"]}
+	case "reset":
+		log.Info("Reset the middlewares, please wait.")
 
 		//decode := json.NewDecoder(r.Body)
 
@@ -58,11 +60,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			log.Debug("latency :%s", config.Latency)
 			fmt.Fprint(w, body_str)
 		} else {
-			log.Error("New a network shape has an erro", err)
+			log.Error("Reset a network shape has an erro", err)
 			fmt.Fprint(w, err)
 		}
 
-		log.Debug("The parameters for create some new middlewares on current muxy: %s", body_str)
+		log.Debug("The parameters for reset the work shape on current muxy: %s", body_str)
 
 		for _, m := range Muxy.MiddleWares() {
 			log.Debug("%s", reflect.TypeOf(m))
@@ -98,25 +100,25 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Info("Create some middleware for current Muxy successfully")
-		fmt.Fprint(w, "Create a new network shape successfully.")
-	case "restart":
-		log.Info("Restart Muxy, please wait.")
+		fmt.Fprint(w, "Reset the network shape successfully.")
+	case "enable":
+		log.Info("Enable the network shape of the current Muxy, please wait.")
 
 		for _, m := range Muxy.MiddleWares() {
-			log.Info("Setup type %s", reflect.TypeOf(m))
+			log.Info("Enable type %s", reflect.TypeOf(m))
 			m.Setup()
 		}
 
-		log.Info("Restart Muxy successfully")
-	case "stop":
-		log.Info("Then shutting down Muxy, please wait.")
+		log.Info("Enable Muxy successfully")
+	case "disable":
+		log.Info("Disable all rules with current Muxy, please wait.")
 
 		for _, m := range Muxy.MiddleWares() {
-			log.Info("Tear down type %s", reflect.TypeOf(m))
+			log.Info("Disable type %s", reflect.TypeOf(m))
 			m.Teardown()
 		}
 
-		log.Info("Shutting down Muxy successfully")
+		log.Info("Disable the network shape of the current Muxy successfully")
 	default:
 		fmt.Fprintf(w, "Can not support %s method", r.URL.Path[1:])
 		log.Debug("Can not support %s method", log.Colorize(log.RED, r.URL.Path[1:]))

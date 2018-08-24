@@ -56,7 +56,7 @@ var dry bool
 
 func setup(t throttler, cfg *Config) {
 	if t.exists() {
-		log.Debug("It looks like the packet rules are already setup")
+		log.Debug("It looks like the packet rules %s", log.Colorize(log.RED, "are already setup"))
 		//os.Exit(1)
 
 		return
@@ -76,7 +76,7 @@ func setup(t throttler, cfg *Config) {
 
 func teardown(t throttler, cfg *Config) {
 	if !t.exists() {
-		log.Debug("It looks like the packet rules aren't setup")
+		log.Debug("It looks like the packet rules %s", log.Colorize(log.RED, "aren't setup"))
 		//os.Exit(1)
 		return
 	}
@@ -106,7 +106,7 @@ func Run(cfg *Config) {
 		c = &shellCommander{}
 	}
 
-	log.Debug("Your OS \t" + log.Colorize(log.YELLOW, runtime.GOOS))
+	log.Debug("Your OS \t%s", log.Colorize(log.YELLOW, runtime.GOOS))
 	switch runtime.GOOS {
 	case freebsd:
 		if cfg.Device == "" {
@@ -140,7 +140,7 @@ func Run(cfg *Config) {
 		os.Exit(1)
 	}
 
-	log.Debug("Your device \t" + log.Colorize(log.YELLOW, cfg.Device))
+	log.Debug("Your device \t%s", log.Colorize(log.YELLOW, cfg.Device))
 
 	if !cfg.Stop {
 		log.Debug("Start to setup throttler")
