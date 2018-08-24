@@ -75,6 +75,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			case *symptom.NetworkShaperSymptom:
 				v.Teardown()
 
+				// We should sleep this current goroutine in order to make the ip tables change less frequently.
+				time.Sleep(5 * time.Second)
+
 				v.Device = config.Device
 				v.Latency = config.Latency
 				v.PacketLoss = config.PacketLoss
