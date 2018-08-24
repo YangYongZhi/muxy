@@ -1,10 +1,10 @@
 package symptom
 
 import (
-	"time"
 	"github.com/YangYongZhi/muxy/log"
 	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
+	"time"
 )
 
 // HTTPDelaySymptom adds specified delays to requests Symptom
@@ -42,7 +42,7 @@ func (m *HTTPDelaySymptom) Setup() {
 
 // Teardown shuts down the plugin
 func (m *HTTPDelaySymptom) Teardown() {
-	log.Debug("Start to tear down the delay plugin")
+	log.Debug("Tear down the delay plugin")
 }
 
 // HandleEvent takes a proxy event for the proxy to intercept and modify

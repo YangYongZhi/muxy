@@ -57,12 +57,16 @@ var dry bool
 func setup(t throttler, cfg *Config) {
 	if t.exists() {
 		log.Debug("It looks like the packet rules are already setup")
-		os.Exit(1)
+		//os.Exit(1)
+
+		return
 	}
 
 	if err := t.setup(cfg); err != nil {
 		log.Debug("I couldn't setup the packet rules:" + err.Error())
-		os.Exit(1)
+		//os.Exit(1)
+
+		return
 	}
 
 	log.Debug("Packet rules setup...")
@@ -73,12 +77,14 @@ func setup(t throttler, cfg *Config) {
 func teardown(t throttler, cfg *Config) {
 	if !t.exists() {
 		log.Debug("It looks like the packet rules aren't setup")
-		os.Exit(1)
+		//os.Exit(1)
+		return
 	}
 
 	if err := t.teardown(cfg); err != nil {
 		log.Debug("Failed to stop packet controls")
-		os.Exit(1)
+		//os.Exit(1)
+		return
 	}
 
 	log.Debug("Packet rules stopped...")

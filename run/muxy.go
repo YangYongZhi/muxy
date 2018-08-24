@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 
-	h "github.com/YangYongZhi/muxy/api/http"
 	"github.com/YangYongZhi/muxy/log"
 	"github.com/YangYongZhi/muxy/muxy"
 	"github.com/mefellows/plugo/plugo"
@@ -33,6 +32,11 @@ type Muxy struct {
 	middlewares []muxy.Middleware
 	proxies     []muxy.Proxy
 	sigChan     chan os.Signal
+}
+
+// return the all middlewares as a list
+func (m *Muxy) MiddleWares() []muxy.Middleware {
+	return m.middlewares
 }
 
 // New creates a new Muxy instance
@@ -67,9 +71,6 @@ func (m *Muxy) Run() {
 	for _, proxy := range m.proxies {
 		go proxy.Proxy()
 	}
-
-	var httpServer = h.New("Http api server")
-	go httpServer.Start()
 
 	// Block until a signal is received.
 	<-m.sigChan

@@ -318,7 +318,7 @@ func delIptablesRules(cfg *Config, c commander) error {
 			if strings.Contains(line, iptDelSearch) {
 				cmd := strings.Replace(line, "-A", delCmdPrefix, 1)
 				log.Debug("Deleting Iptables rule :")
-				log.Error(cmd)
+
 				err = c.execute(cmd)
 
 				if err != nil {
@@ -338,12 +338,12 @@ func delRootQDisc(cfg *Config, c commander) error {
 	cmd := strings.Join(strs, " ")
 
 	log.Debug("Deleting root qdisc :")
-	log.Error(cmd)
 
 	return c.execute(cmd)
 }
 
 func (t *tcThrottler) exists() bool {
+	log.Debug("Check if iptables has been exist")
 	if dry {
 		return false
 	}

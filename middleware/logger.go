@@ -35,6 +35,7 @@ func (l *LoggerMiddleware) Setup() {
 
 // Teardown shuts down the middleware
 func (LoggerMiddleware) Teardown() {
+	log.Debug("Tear down the logger plugin")
 }
 
 // HandleEvent takes a ProxyEvent and acts on the information provided

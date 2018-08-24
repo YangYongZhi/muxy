@@ -15,7 +15,7 @@ var Commands map[string]cli.CommandFactory
 // UI wraps the commands available to the CLI
 var UI cli.Ui
 
-var muxy *m.Muxy
+var Muxy *m.Muxy
 var c *m.Config
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 
 func setup() {
 	c = &m.Config{}
-	muxy = m.New(c)
+	Muxy = m.New(c)
 
 	UI = &cli.ColoredUi{
 		Ui:          &cli.BasicUi{Writer: os.Stdout, Reader: os.Stdin, ErrorWriter: os.Stderr},
@@ -47,4 +47,5 @@ func setup() {
 			return &pki.PkiCommand{}, nil
 		},
 	}
+
 }
