@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	port = ":13003"
+	port                             = ":13003"
+	sleepTimeBetweenDisableAndEnable = 5 * time.Second
 )
 
 var Muxy *m.Muxy
@@ -79,7 +80,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 				// We should sleep this current goroutine in order to make the ip tables change less frequently.
 				log.Debug("We should sleep this current goroutine in order to make the ip tables change less frequently.")
-				time.Sleep(5 * time.Second)
+				time.Sleep(sleepTimeBetweenDisableAndEnable)
 
 				v.Device = config.Device
 				v.Latency = config.Latency
