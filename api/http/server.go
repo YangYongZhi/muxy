@@ -63,6 +63,16 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprintf(w, "### %s ###:\n%s", iptCmdStr, string(iptOut))
 
+		// List all iptables 6
+		ipt6CmdStr := fmt.Sprintf(throttler.IptList, throttler.Ip6Tables)
+		ipt6Cmd := exec.Command("/bin/bash", "-c", ipt6CmdStr)
+		ipt6Out, err := ipt6Cmd.Output()
+		log.Debug("Executed command : %s", log.Colorize(log.GREEN, ipt6CmdStr))
+		if err != nil {
+			log.Error("Error: %s", err.Error())
+		}
+		fmt.Fprintf(w, "### %s ###:\n%s", ipt6CmdStr, string(ipt6Out))
+
 		// Show tc qdisc
 		tcListCmd := exec.Command("/bin/bash", "-c", throttler.TcList)
 		tcOut, err := tcListCmd.Output()
@@ -116,7 +126,12 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.TargetBandwidth = config.TargetBandwidth
 				v.TargetPorts = config.TargetPorts
 				v.TargetProtos = config.TargetProtos
-				v.TargetIps = config.TargetIps
+				if len(config.TargetIps) > 0 {
+					v.TargetIps = config.TargetIps
+				}
+				if len(config.TargetIps6) > 0 {
+					v.TargetIps6 = config.TargetIps6
+				}
 
 				v.Config.Device = config.Device
 				v.Config.Latency = config.Latency
@@ -124,7 +139,12 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.Config.TargetBandwidth = config.TargetBandwidth
 				v.Config.TargetPorts = config.TargetPorts
 				v.Config.TargetProtos = config.TargetProtos
-				v.Config.TargetIps = config.TargetIps
+				if len(config.TargetIps) > 0 {
+					v.Config.TargetIps = config.TargetIps
+				}
+				if len(config.TargetIps6) > 0 {
+					v.Config.TargetIps6 = config.TargetIps6
+				}
 
 				v.Setup()
 			}
