@@ -86,10 +86,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		var config throttler.Config
 
 		if err := json.Unmarshal(body, &config); err == nil {
-			log.Debug("latency :%s", config.Latency)
-			fmt.Fprint(w, body_str)
+			log.Debug("latency :%d", config.Latency)
+			fmt.Fprintf(w, "%s\n", body_str)
 		} else {
-			log.Error("Reset a network shape has an erro", err)
+			log.Error("Reset a network shape has an error", err)
 			fmt.Fprint(w, err)
 		}
 
@@ -116,6 +116,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.TargetBandwidth = config.TargetBandwidth
 				v.TargetPorts = config.TargetPorts
 				v.TargetProtos = config.TargetProtos
+				v.TargetIps = config.TargetIps
 
 				v.Config.Device = config.Device
 				v.Config.Latency = config.Latency
@@ -123,6 +124,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.Config.TargetBandwidth = config.TargetBandwidth
 				v.Config.TargetPorts = config.TargetPorts
 				v.Config.TargetProtos = config.TargetProtos
+				v.Config.TargetIps = config.TargetIps
 
 				v.Setup()
 			}
@@ -134,21 +136,27 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	case "enable":
 		log.Info("Enable the network shape of the current Muxy, please wait.")
 
+		fmt.Fprint(w, "Enable\n")
 		for _, m := range Muxy.MiddleWares() {
 			log.Info("Enable type %s", reflect.TypeOf(m))
 			m.Setup()
+			fmt.Fprintf(w, "%s.\n", reflect.TypeOf(m))
 		}
 
 		log.Info("Enable Muxy successfully")
+		fmt.Fprint(w, "Enable Muxy successfully")
 	case "disable":
 		log.Info("Disable all rules with current Muxy, please wait.")
 
+		fmt.Fprint(w, "Disable\n")
 		for _, m := range Muxy.MiddleWares() {
 			log.Info("Disable type %s", reflect.TypeOf(m))
 			m.Teardown()
+			fmt.Fprintf(w, "%s.\n", reflect.TypeOf(m))
 		}
 
 		log.Info("Disable the network shape of the current Muxy successfully")
+		fmt.Fprint(w, "Disable Muxy successfully")
 	default:
 		fmt.Fprintf(w, "Can not support %s method", r.URL.Path[1:])
 		log.Debug("Can not support %s method", log.Colorize(log.RED, r.URL.Path[1:]))
