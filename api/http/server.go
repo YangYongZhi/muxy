@@ -1,19 +1,18 @@
 package http
 
 import (
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 	"github.com/YangYongZhi/muxy/log"
+	"github.com/YangYongZhi/muxy/middleware"
 	m "github.com/YangYongZhi/muxy/run"
+	"github.com/YangYongZhi/muxy/symptom"
 	"github.com/YangYongZhi/muxy/throttler"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"reflect"
 	"time"
-
-	"github.com/YangYongZhi/muxy/middleware"
-	"github.com/YangYongZhi/muxy/symptom"
 )
 
 const (
@@ -33,19 +32,48 @@ func New(name string) *MuxyApiServer {
 }
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug("request the %s api", log.Colorize(log.YELLOW, r.URL.Path[1:]))
+	log.Debug("Request method : [%s]", log.Colorize(log.YELLOW, r.URL.Path[1:]))
 	method := r.URL.Path[1:]
-	fmt.Fprintf(w, "Hi, your resource is %s\n", method)
+	//fmt.Fprintf(w, "Hi, your resource is %s\n", method)
 
 	switch method {
-	case "check":
+	case "middlewares":
 		middlewares := Muxy.MiddleWares()
 		if len(middlewares) > 0 {
-			fmt.Fprintf(w, "Muxy has been start, middleware count : %d\n", len(middlewares))
+			log.Debug("Muxy is running, middleware count : %d\n", len(middlewares))
 		}
 
-		//e.g. body = {"Device":"ens33","Latency": 2000, "TargetBandWidth":20,"PacketLoss":70,"TargetPorts": ["5001","10090"], "TargetProtos":["tcp","icmp"]}
+		//middlewareJson, _ := json.Marshal(middlewares)
+		//middlewareJsonString := string(middlewareJson)
+
+		middlewareJson, _ := json.MarshalIndent(middlewares, "", "    ")
+		middlewareJsonString := string(middlewareJson)
+		log.Debug("middlewares are :\n%s", middlewareJsonString)
+
+		w.Header().Add("Content-Type", "application/json")
+		fmt.Fprintf(w, middlewareJsonString)
+	case "networkshape":
+		// List all iptables
+		iptCmdStr := fmt.Sprintf(throttler.IptList, throttler.Ip4Tables)
+		iptCmd := exec.Command("/bin/bash", "-c", iptCmdStr)
+		iptOut, err := iptCmd.Output()
+		log.Debug("Executed command : %s", log.Colorize(log.GREEN, iptCmdStr))
+		if err != nil {
+			log.Error("Error: %s", err.Error())
+		}
+		fmt.Fprintf(w, "### %s ###:\n%s", iptCmdStr, string(iptOut))
+
+		// Show tc qdisc
+		tcListCmd := exec.Command("/bin/bash", "-c", throttler.TcList)
+		tcOut, err := tcListCmd.Output()
+		log.Debug("Executed command : %s", log.Colorize(log.GREEN, throttler.TcList))
+		if err != nil {
+			log.Error("Error: %s", err.Error())
+		}
+		fmt.Fprintf(w, "### %s ###:\n%s", throttler.TcList, string(tcOut))
+
 	case "reset":
+		//e.g. body = {"Device":"ens33","Latency": 2000, "TargetBandWidth":20,"PacketLoss":70,"TargetPorts": ["5001","10090"], "TargetProtos":["tcp","icmp"]}
 		log.Info("Reset the middlewares, please wait.")
 
 		//decode := json.NewDecoder(r.Body)
@@ -72,9 +100,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 			switch v := m.(type) {
 			case *middleware.LoggerMiddleware:
-				log.Debug("Not support %v now.", v)
+				log.Debug("Not support %v yet.", v)
 			case *symptom.HTTPDelaySymptom:
-				log.Debug("Not support %v now.", v)
+				log.Debug("Not support %v yet.", v)
 			case *symptom.NetworkShaperSymptom:
 				v.Teardown()
 

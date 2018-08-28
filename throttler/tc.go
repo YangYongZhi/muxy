@@ -30,9 +30,10 @@ const (
 	iptDestPorts   = `--match multiport --sports %s`
 	iptDestPort    = `--sport %s`
 	iptDelSearch   = `class 0010:0010`
-	iptList        = `sudo %s -S -t mangle`
-	ip4Tables      = `iptables`
-	ip6Tables      = `ip6tables`
+	TcList         = `sudo tc qdisc show`
+	IptList        = `sudo %s -S -t mangle`
+	Ip4Tables      = `iptables`
+	Ip6Tables      = `ip6tables`
 	iptDel         = `sudo %s -t mangle -D`
 	tcExists       = `sudo tc qdisc show | grep "netem"`
 	tcCheck        = `sudo tc -s qdisc`
@@ -205,10 +206,10 @@ func addNetemRule(cfg *Config, c commander) error {
 func addIptablesRules(cfg *Config, c commander) error {
 	var err error
 	if err == nil && len(cfg.TargetIps) > 0 {
-		err = addIptablesRulesForAddrs(cfg, c, ip4Tables, cfg.TargetIps)
+		err = addIptablesRulesForAddrs(cfg, c, Ip4Tables, cfg.TargetIps)
 	}
 	if err == nil && len(cfg.TargetIps6) > 0 {
-		err = addIptablesRulesForAddrs(cfg, c, ip6Tables, cfg.TargetIps6)
+		err = addIptablesRulesForAddrs(cfg, c, Ip6Tables, cfg.TargetIps6)
 	}
 	log.Error("addIptablesRules error %s", err.Error())
 	return err
@@ -292,13 +293,13 @@ func (t *tcThrottler) teardown(cfg *Config) error {
 }
 
 func delIptablesRules(cfg *Config, c commander) error {
-	iptablesCommands := []string{ip4Tables, ip6Tables}
+	iptablesCommands := []string{Ip4Tables, Ip6Tables}
 
 	for _, iptablesCommand := range iptablesCommands {
 		if !c.commandExists(iptablesCommand) {
 			continue
 		}
-		lines, err := c.executeGetLines(fmt.Sprintf(iptList, iptablesCommand))
+		lines, err := c.executeGetLines(fmt.Sprintf(IptList, iptablesCommand))
 		if err != nil {
 			// ignore exit code 3 from iptables, which might happen if the system
 			// has the ip6tables command, but no IPv6 capabilities
