@@ -27,8 +27,10 @@ const (
 	iptDelTarget   = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
 	iptDestIP      = `-d %s`
 	iptProto       = `-p %s`
-	iptDestPorts   = `--match multiport --sports %s`
-	iptDestPort    = `--sport %s`
+	iptDestPorts   = `--match multiport --dports %s`
+	iptDestPort    = `--dport %s`
+	iptSrcPorts    = `--match multiport --sports %s`
+	iptSrcPort     = `--sport %s`
 	iptDelSearch   = `class 0010:0010`
 	iptList        = `sudo %s -S -t mangle`
 	ip4Tables      = `iptables`
@@ -222,9 +224,9 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 	if len(cfg.TargetPorts) > 0 {
 		if len(cfg.TargetPorts) > 1 {
 			prts := strings.Join(cfg.TargetPorts, ",")
-			ports = fmt.Sprintf(iptDestPorts, prts)
+			ports = fmt.Sprintf(iptSrcPorts, prts)
 		} else {
-			ports = fmt.Sprintf(iptDestPort, cfg.TargetPorts[0])
+			ports = fmt.Sprintf(iptSrcPort, cfg.TargetPorts[0])
 		}
 	}
 
