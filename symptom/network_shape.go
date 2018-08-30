@@ -2,16 +2,16 @@ package symptom
 
 import (
 	"bytes"
+	"github.com/YangYongZhi/muxy/log"
+	"github.com/YangYongZhi/muxy/muxy"
+	"github.com/YangYongZhi/muxy/throttler"
+	"github.com/mefellows/plugo/plugo"
 	"io"
 	l "log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/YangYongZhi/muxy/log"
-	"github.com/YangYongZhi/muxy/muxy"
-	"github.com/mefellows/plugo/plugo"
-	"github.com/YangYongZhi/muxy/throttler"
 )
 
 // NetworkShaperSymptom allows you to modify the network speed on a host
@@ -60,8 +60,6 @@ func (s *NetworkShaperSymptom) Setup() {
 		DryRun:           false,
 	}
 
-
-
 	executeThrottler(&s.Config)
 
 	log.Debug("NetworkShaperSymptom has been setup")
@@ -79,6 +77,10 @@ var executeThrottler = func(config *throttler.Config) {
 
 // HandleEvent is the hook into the event system
 func (s NetworkShaperSymptom) HandleEvent(e muxy.ProxyEvent, ctx *muxy.Context) {
+	/*
+	 * Because the network shaper plugin is a layer 4 tamperer,
+	 * it only need to configure the local firewall and network devices. don't require any proxy.
+	 */
 	switch e {
 	case muxy.EventPreDispatch:
 		s.Muck(ctx)
@@ -87,7 +89,7 @@ func (s NetworkShaperSymptom) HandleEvent(e muxy.ProxyEvent, ctx *muxy.Context) 
 
 // Muck is where the plugin can do any context-specific chaos
 func (s *NetworkShaperSymptom) Muck(ctx *muxy.Context) {
-	log.Debug("NetworkShaperSymptom - Mucking...")
+	log.Debug("NetworkShaperSymptom - Nothing to muck")
 }
 
 // Teardown shuts down the plugin
