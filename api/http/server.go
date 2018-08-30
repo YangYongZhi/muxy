@@ -101,6 +101,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Error("Reset a network shape has an error", err)
 			fmt.Fprint(w, err)
+			return
 		}
 
 		log.Debug("The parameters for reset the work shape on current muxy: %s", body_str)
@@ -122,6 +123,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 				v.Device = config.Device
 				v.Latency = config.Latency
+				v.LatencyJitter = config.LatencyJitter
+				v.LatencyDistributionNormal = config.LatencyDistributionNormal
 				v.PacketLoss = config.PacketLoss
 				v.TargetBandwidth = config.TargetBandwidth
 				v.TargetPorts = config.TargetPorts
@@ -135,6 +138,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 				v.Config.Device = config.Device
 				v.Config.Latency = config.Latency
+				v.Config.LatencyJitter = config.LatencyJitter
+				v.Config.LatencyDistributionNormal = config.LatencyDistributionNormal
 				v.Config.PacketLoss = config.PacketLoss
 				v.Config.TargetBandwidth = config.TargetBandwidth
 				v.Config.TargetPorts = config.TargetPorts

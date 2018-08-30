@@ -10,35 +10,41 @@ import (
 )
 
 const (
-	tcRootQDisc    = `dev %s handle 10: root`
-	tcRootExtra    = `default 1`
-	tcDefaultClass = `dev %s parent 10: classid 10:1`
-	tcTargetClass  = `dev %s parent 10: classid 10:10`
-	tcNetemRule    = `dev %s parent 10:10 handle 100:`
-	tcRate         = `rate %vkbit`
-	tcCbq          = `cbq avpkt 1000 bandwidth %vkbit`
-	tcDelay        = `delay %vms`
-	tcLoss         = `loss %v%%`
-	tcAddClass     = `sudo tc class add`
-	tcDelClass     = `sudo tc class del`
-	tcAddQDisc     = `sudo tc qdisc add`
-	tcDelQDisc     = `sudo tc qdisc del`
-	iptAddTarget   = `sudo %s -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
-	iptDelTarget   = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
-	iptDestIP      = `-d %s`
-	iptProto       = `-p %s`
-	iptDestPorts   = `--match multiport --dports %s`
-	iptDestPort    = `--dport %s`
-	iptSrcPorts    = `--match multiport --sports %s`
-	iptSrcPort     = `--sport %s`
-	iptDelSearch   = `class 0010:0010`
-	TcList         = `sudo tc qdisc show`
-	IptList        = `sudo %s -S -t mangle`
-	Ip4Tables      = `iptables`
-	Ip6Tables      = `ip6tables`
-	iptDel         = `sudo %s -t mangle -D`
-	tcExists       = `sudo tc qdisc show | grep "netem"`
-	tcCheck        = `sudo tc -s qdisc`
+	tcRootQDisc               = `dev %s handle 10: root`
+	tcRootExtra               = `default 1`
+	tcDefaultClass            = `dev %s parent 10: classid 10:1`
+	tcTargetClass             = `dev %s parent 10: classid 10:10`
+	tcNetemRule               = `dev %s parent 10:10 handle 100:`
+	tcRate                    = `rate %vkbit`
+	tcDelay                   = `delay %vms`
+	tcLDelayistributionNormal = `distribution normal`
+	tcLDelayJitter            = `%vms`
+	tcLoss                    = `loss %v%%`
+	tcReorder                 = `reorder %f`
+	tcDuplicate               = `duplicate %f`
+	tcCorrupt                 = `corrupt %f`
+	tcAddClass                = `sudo tc class add`
+	tcDelClass                = `sudo tc class del`
+	tcAddQDisc                = `sudo tc qdisc add`
+	tcDelQDisc                = `sudo tc qdisc del`
+	iptAddTarget              = `sudo %s -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
+	iptDelTarget              = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
+	iptDestIP                 = `-d %s`
+	iptProto                  = `-p %s`
+	iptDestPorts              = `--match multiport --dports %s`
+	iptDestPort               = `--dport %s`
+	iptSrcPorts               = `--match multiport --sports %s`
+	iptSrcPort                = `--sport %s`
+	iptDelSearch              = `class 0010:0010`
+	TcList                    = `sudo tc qdisc show`
+	IptList                   = `sudo %s -S -t mangle`
+	Ip4Tables                 = `iptables`
+	Ip6Tables                 = `ip6tables`
+	iptDel                    = `sudo %s -t mangle -D`
+	tcExists                  = `sudo tc qdisc show | grep "netem"`
+	tcCheck                   = `sudo tc -s qdisc`
+
+	//tcCbq                     = `cbq avpkt 1000 bandwidth %vkbit`
 )
 
 type tcThrottler struct {
@@ -185,6 +191,14 @@ func addNetemRule(cfg *Config, c commander) error {
 
 	if cfg.Latency > 0 {
 		strs = append(strs, fmt.Sprintf(tcDelay, cfg.Latency))
+
+		if cfg.LatencyJitter > 0 {
+			strs = append(strs, fmt.Sprintf(tcLDelayJitter, cfg.LatencyJitter))
+
+			if cfg.LatencyDistributionNormal {
+				strs = append(strs, tcLDelayistributionNormal)
+			}
+		}
 	}
 
 	log.Debug("TargetBandwidth: %d", cfg.TargetBandwidth)

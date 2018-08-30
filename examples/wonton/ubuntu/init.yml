@@ -20,6 +20,11 @@ middleware:
   - name: network_shape
     config:
       latency:     0        # Latency to add in ms
+      latency_jitter: 0
+      latency_distribution_normal: false
+      latency_reorder: 0
+      latency_duplicate: 0
+      latency_corrupt: 0
       target_bw:   1000000         # Bandwidth in kbits/s
       packet_loss: 0         # Packet loss, as a %
       target_ips:              # Target ipv4 IP addresses/CIDRs
