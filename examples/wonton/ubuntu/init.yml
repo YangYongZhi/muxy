@@ -19,9 +19,11 @@ middleware:
  #            
   - name: network_shape
     config:
+      device:      "ens33"
       latency:     0        # Latency to add in ms
       latency_jitter: 0
-      latency_distribution_normal: false
+      latency_correlation: 0
+      latency_distribution: "normal" # uniform, normal, pareto, paretonormal
       latency_reorder: 0
       latency_duplicate: 0
       latency_corrupt: 0

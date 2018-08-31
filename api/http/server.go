@@ -124,7 +124,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.Device = config.Device
 				v.Latency = config.Latency
 				v.LatencyJitter = config.LatencyJitter
-				v.LatencyDistributionNormal = config.LatencyDistributionNormal
+				v.LatencyCorrelation = config.LatencyCorrelation
+				v.LatencyDistribution = config.LatencyDistribution
+				v.LatencyReorder = config.LatencyReorder
+				v.LatencyDuplicate = config.LatencyDuplicate
+				v.LatencyCorrupt = config.LatencyCorrupt
 				v.PacketLoss = config.PacketLoss
 				v.TargetBandwidth = config.TargetBandwidth
 				v.TargetPorts = config.TargetPorts
@@ -139,7 +143,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				v.Config.Device = config.Device
 				v.Config.Latency = config.Latency
 				v.Config.LatencyJitter = config.LatencyJitter
-				v.Config.LatencyDistributionNormal = config.LatencyDistributionNormal
+				v.Config.LatencyCorrelation = config.LatencyCorrelation
+				v.Config.LatencyDistribution = config.LatencyDistribution
+				v.Config.LatencyReorder = config.LatencyReorder
+				v.Config.LatencyDuplicate = config.LatencyDuplicate
+				v.Config.LatencyCorrupt = config.LatencyCorrupt
 				v.Config.PacketLoss = config.PacketLoss
 				v.Config.TargetBandwidth = config.TargetBandwidth
 				v.Config.TargetPorts = config.TargetPorts

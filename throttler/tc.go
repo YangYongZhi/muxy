@@ -10,39 +10,40 @@ import (
 )
 
 const (
-	tcRootQDisc               = `dev %s handle 10: root`
-	tcRootExtra               = `default 1`
-	tcDefaultClass            = `dev %s parent 10: classid 10:1`
-	tcTargetClass             = `dev %s parent 10: classid 10:10`
-	tcNetemRule               = `dev %s parent 10:10 handle 100:`
-	tcRate                    = `rate %vkbit`
-	tcDelay                   = `delay %vms`
-	tcLDelayistributionNormal = `distribution normal`
-	tcLDelayJitter            = `%vms`
-	tcLoss                    = `loss %v%%`
-	tcReorder                 = `reorder %f`
-	tcDuplicate               = `duplicate %f`
-	tcCorrupt                 = `corrupt %f`
-	tcAddClass                = `sudo tc class add`
-	tcDelClass                = `sudo tc class del`
-	tcAddQDisc                = `sudo tc qdisc add`
-	tcDelQDisc                = `sudo tc qdisc del`
-	iptAddTarget              = `sudo %s -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
-	iptDelTarget              = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
-	iptDestIP                 = `-d %s`
-	iptProto                  = `-p %s`
-	iptDestPorts              = `--match multiport --dports %s`
-	iptDestPort               = `--dport %s`
-	iptSrcPorts               = `--match multiport --sports %s`
-	iptSrcPort                = `--sport %s`
-	iptDelSearch              = `class 0010:0010`
-	TcList                    = `sudo tc qdisc show`
-	IptList                   = `sudo %s -S -t mangle`
-	Ip4Tables                 = `iptables`
-	Ip6Tables                 = `ip6tables`
-	iptDel                    = `sudo %s -t mangle -D`
-	tcExists                  = `sudo tc qdisc show | grep "netem"`
-	tcCheck                   = `sudo tc -s qdisc`
+	tcRootQDisc        = `dev %s handle 10: root`
+	tcRootExtra        = `default 1`
+	tcDefaultClass     = `dev %s parent 10: classid 10:1`
+	tcTargetClass      = `dev %s parent 10: classid 10:10`
+	tcNetemRule        = `dev %s parent 10:10 handle 100:`
+	tcRate             = `rate %vkbit`
+	tcDelay            = `delay %vms`
+	tcDelayistribution = `distribution %s`
+	tcDelayJitter      = `%vms`
+	tcDelayCorrelation = `%v%%`
+	tcLoss             = `loss %v%% 25%%`
+	tcReorder          = `reorder %v%% gap 3`
+	tcDuplicate        = `duplicate %v%%`
+	tcCorrupt          = `corrupt %v%%`
+	tcAddClass         = `sudo tc class add`
+	tcDelClass         = `sudo tc class del`
+	tcAddQDisc         = `sudo tc qdisc add`
+	tcDelQDisc         = `sudo tc qdisc del`
+	iptAddTarget       = `sudo %s -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
+	iptDelTarget       = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
+	iptDestIP          = `-d %s`
+	iptProto           = `-p %s`
+	iptDestPorts       = `--match multiport --dports %s`
+	iptDestPort        = `--dport %s`
+	iptSrcPorts        = `--match multiport --sports %s`
+	iptSrcPort         = `--sport %s`
+	iptDelSearch       = `class 0010:0010`
+	TcList             = `sudo tc qdisc show`
+	IptList            = `sudo %s -S -t mangle`
+	Ip4Tables          = `iptables`
+	Ip6Tables          = `ip6tables`
+	iptDel             = `sudo %s -t mangle -D`
+	tcExists           = `sudo tc qdisc show | grep "netem"`
+	tcCheck            = `sudo tc -s qdisc`
 
 	//tcCbq                     = `cbq avpkt 1000 bandwidth %vkbit`
 )
@@ -193,16 +194,31 @@ func addNetemRule(cfg *Config, c commander) error {
 		strs = append(strs, fmt.Sprintf(tcDelay, cfg.Latency))
 
 		if cfg.LatencyJitter > 0 {
-			strs = append(strs, fmt.Sprintf(tcLDelayJitter, cfg.LatencyJitter))
+			strs = append(strs, fmt.Sprintf(tcDelayJitter, cfg.LatencyJitter))
 
-			if cfg.LatencyDistributionNormal {
-				strs = append(strs, tcLDelayistributionNormal)
+			if cfg.LatencyCorrelation > 0 {
+				strs = append(strs, fmt.Sprintf(tcDelayCorrelation, cfg.LatencyCorrelation))
 			}
+
+			if len(cfg.LatencyDistribution) > 0 {
+				strs = append(strs, fmt.Sprintf(tcDelayistribution, cfg.LatencyDistribution))
+			}
+		}
+
+		if cfg.LatencyReorder > 0 {
+			strs = append(strs, fmt.Sprintf(tcReorder, strconv.FormatFloat(cfg.LatencyReorder, 'f', 2, 64))) //"reorder 50% gap 3"
+		}
+
+		if cfg.LatencyDuplicate > 0 {
+			strs = append(strs, fmt.Sprintf(tcDuplicate, strconv.FormatFloat(cfg.LatencyDuplicate, 'f', 2, 64))) //"duplicate 50%"
+		}
+
+		if cfg.LatencyCorrupt > 0 {
+			strs = append(strs, fmt.Sprintf(tcCorrupt, strconv.FormatFloat(cfg.LatencyCorrupt, 'f', 2, 64))) //"corrupt 2%"
 		}
 	}
 
-	log.Debug("TargetBandwidth: %d", cfg.TargetBandwidth)
-
+	log.Debug("TargetBandwidth: %d, but if you used 'rate' in a netem command, you will received an error.", cfg.TargetBandwidth)
 	if cfg.TargetBandwidth > -1 {
 		// If you used 'rate' in netem, it will has an error.
 		//strs = append(strs, fmt.Sprintf(tcRate, cfg.TargetBandwidth))
@@ -215,7 +231,7 @@ func addNetemRule(cfg *Config, c commander) error {
 	cmd := strings.Join(strs, " ")
 
 	log.Debug("Adding a netem rule :")
-
+	log.Debug("%s", cmd)
 	return c.execute(cmd)
 }
 

@@ -22,22 +22,23 @@ const (
 
 // Config specifies options for configuring packet filter rules.
 type Config struct {
-	Device                    string
-	Stop                      bool
-	Latency                   int
-	TargetBandwidth           int
-	DefaultBandwidth          int
-	PacketLoss                float64
-	LatencyJitter             float64
-	LatencyDistributionNormal bool
-	LatencyReorder            float64
-	LatencyDuplicate          float64
-	LatencyCorrupt            float64
-	TargetIps                 []string
-	TargetIps6                []string
-	TargetPorts               []string
-	TargetProtos              []string
-	DryRun                    bool
+	Device              string
+	Stop                bool
+	Latency             int
+	TargetBandwidth     int
+	DefaultBandwidth    int
+	PacketLoss          float64
+	LatencyJitter       float64
+	LatencyCorrelation  float64
+	LatencyDistribution string
+	LatencyReorder      float64
+	LatencyDuplicate    float64
+	LatencyCorrupt      float64
+	TargetIps           []string
+	TargetIps6          []string
+	TargetPorts         []string
+	TargetProtos        []string
+	DryRun              bool
 }
 
 type throttler interface {

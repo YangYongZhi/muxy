@@ -17,23 +17,24 @@ import (
 // NetworkShaperSymptom allows you to modify the network speed on a host
 // e.g. shape bandwidth to mobile, slower speeds
 type NetworkShaperSymptom struct {
-	Config                    throttler.Config
-	Device                    string
-	Latency                   int      `default:"-1"`
-	TargetBandwidth           int      `mapstructure:"target_bw" default:"-1"`
-	DefaultBandwidth          int      `mapstructure:"default_bw" default:"-1"`
-	PacketLoss                float64  `mapstructure:"packet_loss"`
-	LatencyJitter             float64  `mapstructure:"latency_jitter"`
-	LatencyDistributionNormal bool     `mapstructure:"latency_distribution_normal"`
-	LatencyReorder            float64  `mapstructure:"latency_reorder"`
-	LatencyDuplicate          float64  `mapstructure:"latency_duplicate"`
-	LatencyCorrupt            float64  `mapstructure:"latency_corrupt"`
-	TargetIps                 []string `mapstructure:"target_ips"`
-	TargetIps6                []string `mapstructure:"target_ips6"`
-	TargetPorts               []string `mapstructure:"target_ports"`
-	TargetProtos              []string `mapstructure:"target_protos" required:"true" default:"tcp,icmp,udp"`
-	out                       io.Writer
-	err                       io.Writer
+	Config              throttler.Config
+	Device              string
+	Latency             int      `default:"-1"`
+	TargetBandwidth     int      `mapstructure:"target_bw" default:"-1"`
+	DefaultBandwidth    int      `mapstructure:"default_bw" default:"-1"`
+	PacketLoss          float64  `mapstructure:"packet_loss"`
+	LatencyJitter       float64  `mapstructure:"latency_jitter"`
+	LatencyCorrelation  float64  `mapstructure:"latency_correlation"`
+	LatencyDistribution string   `mapstructure:"latency_distribution"`
+	LatencyReorder      float64  `mapstructure:"latency_reorder"`
+	LatencyDuplicate    float64  `mapstructure:"latency_duplicate"`
+	LatencyCorrupt      float64  `mapstructure:"latency_corrupt"`
+	TargetIps           []string `mapstructure:"target_ips"`
+	TargetIps6          []string `mapstructure:"target_ips6"`
+	TargetPorts         []string `mapstructure:"target_ports"`
+	TargetProtos        []string `mapstructure:"target_protos" required:"true" default:"tcp,icmp,udp"`
+	out                 io.Writer
+	err                 io.Writer
 }
 
 func init() {
@@ -53,21 +54,22 @@ func (s *NetworkShaperSymptom) Setup() {
 	log.Debug("NetworkShaperSymptom - \tIPv4 %s \tIPv6 %s")
 
 	s.Config = throttler.Config{
-		Device:                    s.Device,
-		Latency:                   s.Latency,
-		TargetBandwidth:           s.TargetBandwidth,
-		DefaultBandwidth:          s.DefaultBandwidth,
-		PacketLoss:                s.PacketLoss,
-		LatencyJitter:             s.LatencyJitter,
-		LatencyDistributionNormal: s.LatencyDistributionNormal,
-		LatencyReorder:            s.LatencyReorder,
-		LatencyDuplicate:          s.LatencyDuplicate,
-		LatencyCorrupt:            s.LatencyCorrupt,
-		TargetIps:                 targetIPv4,
-		TargetIps6:                targetIPv6,
-		TargetPorts:               ports,
-		TargetProtos:              s.TargetProtos,
-		DryRun:                    false,
+		Device:              s.Device,
+		Latency:             s.Latency,
+		TargetBandwidth:     s.TargetBandwidth,
+		DefaultBandwidth:    s.DefaultBandwidth,
+		PacketLoss:          s.PacketLoss,
+		LatencyJitter:       s.LatencyJitter,
+		LatencyCorrelation:  s.LatencyCorrelation,
+		LatencyDistribution: s.LatencyDistribution,
+		LatencyReorder:      s.LatencyReorder,
+		LatencyDuplicate:    s.LatencyDuplicate,
+		LatencyCorrupt:      s.LatencyCorrupt,
+		TargetIps:           targetIPv4,
+		TargetIps6:          targetIPv6,
+		TargetPorts:         ports,
+		TargetProtos:        s.TargetProtos,
+		DryRun:              false,
 	}
 
 	executeThrottler(&s.Config)

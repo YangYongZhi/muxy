@@ -19,7 +19,7 @@ middleware:
  #            
   - name: network_shape
     config:
-      device:      ens33
+      device:      "ens33"
       latency:     800        # Latency to add in ms
       target_bw:   3         # Bandwidth in kbits/s
       packet_loss: 30         # Packet loss, as a %
