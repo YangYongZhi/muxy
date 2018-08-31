@@ -81,7 +81,24 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			log.Error("Error: %s", err.Error())
 		}
 		fmt.Fprintf(w, "### %s ###:\n%s", throttler.TcList, string(tcOut))
+	case "clear":
+		log.Info("Start forcing to clear all tc qdisc")
+		for _, m := range Muxy.MiddleWares() {
+			log.Debug("%s", reflect.TypeOf(m))
 
+			switch v := m.(type) {
+			case *middleware.LoggerMiddleware:
+				log.Debug("Not support %v yet.", v)
+			case *symptom.HTTPDelaySymptom:
+				log.Debug("Not support %v yet.", v)
+			case *symptom.NetworkShaperSymptom:
+				log.Debug("Not support %v yet.", v)
+			}
+
+		}
+
+		log.Info("Forcing clear all tc qdisc successfully")
+		fmt.Fprint(w, "Forcing to clear all tc qdisc successfully.")
 	case "reset":
 		//e.g. body = {"Device":"ens33","Latency": 2000, "TargetBandWidth":20,"PacketLoss":70,"TargetPorts": ["5001","10090"], "TargetProtos":["tcp","icmp"]}
 		log.Info("Reset the middlewares, please wait.")
