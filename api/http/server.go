@@ -6,12 +6,14 @@ import (
 	"github.com/YangYongZhi/muxy/log"
 	"github.com/YangYongZhi/muxy/middleware"
 	m "github.com/YangYongZhi/muxy/run"
+	"github.com/YangYongZhi/muxy/stressng"
 	"github.com/YangYongZhi/muxy/symptom"
 	"github.com/YangYongZhi/muxy/throttler"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -207,6 +209,39 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Info("Disable the network shape of the current Muxy successfully")
 		fmt.Fprint(w, "Disable Muxy successfully")
+	case "stressor":
+		requestBody, _ := ioutil.ReadAll(r.Body)
+		requestBodyStr := string(requestBody)
+		log.Debug("Received body : \n%s", requestBodyStr)
+
+		var param stressng.Param
+		if err := json.Unmarshal(requestBody, &param); err != nil {
+			fmt.Fprintf(w, "Unmashaling has an error: %s", err.Error())
+			return
+		}
+
+		// List all iptables
+		cmdStrings := []string{"stress-ng", fmt.Sprintf("--%s %d", param.Stressor, param.StressorCount),
+			fmt.Sprintf("--timeout %d%s", param.Timeout, param.TimeoutUnit),
+		}
+
+		if param.Abort {
+			cmdStrings = append(cmdStrings, "--abort")
+		}
+
+		if param.Metrics {
+			cmdStrings = append(cmdStrings, "--metrics-brief")
+		}
+
+		cmdStr := strings.Join(cmdStrings, " ")
+		//iptCmdStr := fmt.Sprintf(" --vm 2 --timeout 30s --metrics-brief --abort")
+		//iptCmdStr := "stress-ng --cpu 0 --cpu-method all --timeout 60s --metrics-brief --abort"
+		//iptCmdStr := "stress-ng --iomix 10 --timeout 30s --metrics-brief --abort"
+		cmd := exec.Command("/bin/bash", "-c", cmdStr)
+		go cmd.Run()
+		log.Debug("Start to execute actual command : %s", log.Colorize(log.GREEN, cmdStr))
+		fmt.Fprintf(w, "Start to execute actual command: \n%s", cmd.Args)
+
 	default:
 		fmt.Fprintf(w, "Can not support %s method", r.URL.Path[1:])
 		log.Debug("Can not support %s method", log.Colorize(log.RED, r.URL.Path[1:]))
