@@ -225,6 +225,24 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("--timeout %d%s", param.Timeout, param.TimeoutUnit),
 		}
 
+		log.Debug("Stressor name:[%s], count:[%d]", log.Colorize(log.GREEN, param.Stressor), param.StressorCount)
+
+		switch param.Stressor {
+		case "cpu":
+			cmdStrings = append(cmdStrings, fmt.Sprintf("-l %d", param.CpuLoad))
+			log.Debug("Cpu load : %s", string(param.CpuLoad))
+		case "vm":
+
+		case "io":
+
+		case "hdd":
+
+		default:
+			log.Debug("Not support stressor named : %s", log.Colorize(log.RED, param.Stressor))
+			fmt.Fprintf(w, "Not support stressor named : %s", param.Stressor)
+			return
+		}
+
 		if param.Abort {
 			cmdStrings = append(cmdStrings, "--abort")
 		}
@@ -238,9 +256,17 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		//iptCmdStr := "stress-ng --cpu 0 --cpu-method all --timeout 60s --metrics-brief --abort"
 		//iptCmdStr := "stress-ng --iomix 10 --timeout 30s --metrics-brief --abort"
 		cmd := exec.Command("/bin/bash", "-c", cmdStr)
-		go cmd.Run()
-		log.Debug("Start to execute actual command : %s", log.Colorize(log.GREEN, cmdStr))
-		fmt.Fprintf(w, "Start to execute actual command: \n%s", cmd.Args)
+
+		err := cmd.Start()
+		if err != nil {
+			log.Fatalf("Execute stress-ng has an error:%s", err.Error())
+		}
+
+		//go cmd.Run()
+
+		log.Debug("Command : %s, pid : [%d]", log.Colorize(log.GREEN, cmdStr), cmd.Process.Pid)
+		//cmd.Process.Release()
+		fmt.Fprintf(w, "Commit command successfully: \n%s\n%s\n%d", cmd.Args, cmdStr, cmd.Process.Pid)
 
 	default:
 		fmt.Fprintf(w, "Can not support %s method", r.URL.Path[1:])

@@ -7,4 +7,6 @@ type Param struct {
 	TimeoutUnit   string
 	Abort         bool
 	Metrics       bool
+	CpuLoad       int8
+
 }
