@@ -257,16 +257,26 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		//iptCmdStr := "stress-ng --iomix 10 --timeout 30s --metrics-brief --abort"
 		cmd := exec.Command("/bin/bash", "-c", cmdStr)
 
-		err := cmd.Start()
-		if err != nil {
-			log.Fatalf("Execute stress-ng has an error:%s", err.Error())
-		}
+		wait := make(chan struct{})
+		go func() {
+			err := cmd.Start()
+			wait <- struct{}{}
+			if err != nil {
+				log.Fatalf("Execute stress-ng has an error:%s", err.Error())
+			}
+			cmd.Wait()
+		}()
+		<-wait
+
+		//time.Sleep(time.Second * 2)
 
 		//go cmd.Run()
 
 		log.Debug("Command : %s, pid : [%d]", log.Colorize(log.GREEN, cmdStr), cmd.Process.Pid)
 		//cmd.Process.Release()
 		fmt.Fprintf(w, "Commit command successfully: \n%s\n%s\n%d", cmd.Args, cmdStr, cmd.Process.Pid)
+
+		//cmd.Wait()
 
 	default:
 		fmt.Fprintf(w, "Can not support %s method", r.URL.Path[1:])
