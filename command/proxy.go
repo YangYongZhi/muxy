@@ -3,6 +3,7 @@ package command
 import (
 	"flag"
 	"github.com/YangYongZhi/muxy/api/http"
+	"github.com/YangYongZhi/muxy/log"
 	"strings"
 )
 
@@ -23,10 +24,19 @@ func (pc *ProxyCommand) Run(args []string) int {
 		return 1
 	}
 
-	//Start a http server for api rest interface.
-	muxyHttpServer := http.MuxyApiServer{"muxy_api_agent"}
-	http.Muxy = Muxy
-	go muxyHttpServer.Start()
+	go func() { //Start a http server for api rest interface.
+		muxyHttpServer := http.MuxyApiServer{"muxy_api_agent"}
+		http.Muxy = Muxy
+		log.Debug("Start [%s] for restful apis.", log.Colorize(log.RED, "HTTP Server"))
+		muxyHttpServer.Start()
+	}()
+
+	go func() {
+		heartbeatSender := http.HeartBeatSender{}
+		log.Debug("")
+		log.Debug("Start [%s] for heartbeat.", log.Colorize(log.RED, "Heartbeat Sender"))
+		heartbeatSender.Start()
+	}()
 
 	//Start a muxy instance.
 	Muxy.Run()
