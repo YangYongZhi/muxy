@@ -8,22 +8,22 @@ import (
 )
 
 const (
-	SendDomain  = `http://localhost:13003/stressng/stressors`
-	SendInteval = 30
+	serverURL   = `http://localhost:13003/stressng/stressors`
+	sendInteval = 30
 )
 
 type HeartBeatSender struct {
 }
 
 func (*HeartBeatSender) Start() {
-	gocron.Every(SendInteval).Seconds().Do(sendHeartBeat)
+	gocron.Every(sendInteval).Seconds().Do(sendHeartBeat)
 
 	// function Start start all the pending jobs
 	<-gocron.Start()
 }
 
 func sendHeartBeat() {
-	response, err := http.Get(SendDomain)
+	response, err := http.Get(serverURL)
 	if err != nil {
 		log.Error(err.Error())
 		return
@@ -38,6 +38,6 @@ func sendHeartBeat() {
 		}
 	}
 
-	_, time := gocron.NextRun()
-	log.Debug("Send a heartbeat, next run time at %v", time)
+	job, time := gocron.NextRun()
+	log.Debug("Send a heartbeat, next run time at %v, %v", time, job.NextScheduledTime())
 }
