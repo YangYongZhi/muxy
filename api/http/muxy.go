@@ -11,8 +11,18 @@ import (
 	"net/http"
 	"os/exec"
 	"reflect"
+	"strings"
 	"time"
 )
+
+type networkshape struct {
+	Cmd    string   `json:"command"`
+	Output []string `json:"output"`
+}
+
+type networkshapeResult struct {
+	Shapes []networkshape `json:"shapes"`
+}
 
 /**
 
@@ -31,14 +41,18 @@ func middlewaresHanlder(w http.ResponseWriter, r *http.Request) {
 	log.Debug("middlewares are :\n%s", middlewareJsonString)
 
 	w.Header().Add("Content-Type", "application/json")
-	fmt.Fprintf(w, middlewareJsonString)
+	// fmt.Fprintf(w, middlewareJsonString)
+	json.NewEncoder(w).Encode(middlewares)
 }
 
 /**
  *
  */
 func networkshapeHanlder(w http.ResponseWriter, r *http.Request) {
+	networkshapeResult := networkshapeResult{}
+
 	// List all iptables
+	var iptables4 = networkshape{}
 	iptCmdStr := fmt.Sprintf(throttler.IptList, throttler.Ip4Tables)
 	iptCmd := exec.Command("/bin/bash", "-c", iptCmdStr)
 	iptOut, err := iptCmd.Output()
@@ -46,9 +60,13 @@ func networkshapeHanlder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Error: %s", err.Error())
 	}
-	fmt.Fprintf(w, "### %s ###:\n%s", iptCmdStr, string(iptOut))
+	log.Debug("\n%s", string(iptOut))
+	iptables4.Cmd = iptCmdStr
+	iptables4.Output = strings.Split(string(iptOut), "\n")
+	networkshapeResult.Shapes = append(networkshapeResult.Shapes, iptables4)
 
 	// List all iptables 6
+	var iptables6 = networkshape{}
 	ipt6CmdStr := fmt.Sprintf(throttler.IptList, throttler.Ip6Tables)
 	ipt6Cmd := exec.Command("/bin/bash", "-c", ipt6CmdStr)
 	ipt6Out, err := ipt6Cmd.Output()
@@ -56,16 +74,29 @@ func networkshapeHanlder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Error: %s", err.Error())
 	}
-	fmt.Fprintf(w, "### %s ###:\n%s", ipt6CmdStr, string(ipt6Out))
+	log.Debug("\n%s", string(ipt6Out))
+	iptables6.Cmd = ipt6CmdStr
+	iptables6.Output = strings.Split(string(ipt6Out), "\n")
+	networkshapeResult.Shapes = append(networkshapeResult.Shapes, iptables6)
 
 	// Show tc qdisc
+	var tc = networkshape{}
 	tcListCmd := exec.Command("/bin/bash", "-c", throttler.TcList)
 	tcOut, err := tcListCmd.Output()
 	log.Debug("Executed command : %s", log.Colorize(log.GREEN, throttler.TcList))
 	if err != nil {
 		log.Error("Error: %s", err.Error())
 	}
-	fmt.Fprintf(w, "### %s ###:\n%s", throttler.TcList, string(tcOut))
+	log.Debug("\n%s", string(tcOut))
+	tc.Cmd = throttler.TcList
+	tc.Output = strings.Split(string(tcOut), "\n")
+	networkshapeResult.Shapes = append(networkshapeResult.Shapes, tc)
+
+	w.Header().Add("Content-Type", "application/json")
+	//middlewareJson, _ := json.MarshalIndent(networkshapeResult, "", "    ")
+	//middlewareJsonString := string(middlewareJson)
+	//fmt.Fprintf(w, middlewareJsonString)
+	json.NewEncoder(w).Encode(networkshapeResult)
 }
 
 /**
@@ -112,7 +143,8 @@ func resetHanlder(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%s\n", body_str)
 	} else {
 		log.Error("Reset a network shape has an error", err)
-		fmt.Fprint(w, err)
+		//http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

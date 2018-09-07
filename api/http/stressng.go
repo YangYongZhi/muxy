@@ -13,6 +13,13 @@ import (
 	"strings"
 )
 
+type response struct {
+	Cmd       string
+	Args      []string
+	ProcessId int
+	State     int
+}
+
 /**
  *
  */
@@ -64,9 +71,10 @@ func stressorHandler(w http.ResponseWriter, r *http.Request) {
 	cmdStr := strings.Join(cmdStrings, " ")
 	cmd := exec.Command("/bin/bash", "-c", cmdStr)
 
+	var resp = response{}
 	if err := cmd.Start(); err != nil {
 		log.Fatalf("Execute stress-ng has an error:%s", err.Error())
-		fmt.Fprintf(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else {
 		pid := cmd.Process.Pid
@@ -103,7 +111,13 @@ func stressorHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug("Command : %s, pid : [%d]", log.Colorize(log.GREEN, cmdStr), cmd.Process.Pid)
 	//cmd.Process.Release()
-	fmt.Fprintf(w, "Commit command successfully: \n%s\n%s\n%d", cmd.Args, cmdStr, cmd.Process.Pid)
+	//fmt.Fprintf(w, "Commit command successfully: \n%s\n%s\n%d", cmd.Args, cmdStr, cmd.Process.Pid)
+	resp.Cmd = cmdStr
+	resp.Args = cmd.Args
+	resp.ProcessId = cmd.Process.Pid
+	resp.State = http.StatusOK
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 /**
@@ -117,7 +131,7 @@ func runningStressorsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, stressorsJon)
 	} else {
 		log.Error(err.Error())
-		fmt.Fprint(w, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -137,7 +151,7 @@ func killStressorHandler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		cmd := stressng.RunningStressor[pid]
 		if cmd.Process == nil {
-			fmt.Fprintf(w, "The process with pid [%d] has not exist, it may be finished or be killed already.", pid)
+			http.Error(w, fmt.Sprintf("The process with pid [%d] has not exist, it may be finished or be killed already.", pid), http.StatusNotFound)
 			log.Info("The process with pid [%d] has not exist, it may be finished or be killed already.", pid)
 			return
 		}
@@ -147,12 +161,12 @@ func killStressorHandler(w http.ResponseWriter, r *http.Request) {
 			log.Info("Killing the stressor with key [%d] manually.", pid)
 			fmt.Fprintf(w, "Process with pid [%d] has been killed successfully", pid)
 		} else {
-			fmt.Fprint(w, err.Error())
 			log.Error(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		fmt.Fprint(w, err.Error())
 		log.Error(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -161,7 +175,7 @@ func killStressorHandler(w http.ResponseWriter, r *http.Request) {
  */
 func killAllStressorsHandler(w http.ResponseWriter, r *http.Request) {
 	if len(stressng.RunningStressor) <= 0 {
-		fmt.Fprint(w, "No running streesor here")
+		http.Error(w, "No running streesor here", http.StatusNotFound)
 		log.Warn("No running streesor here")
 		return
 	}
@@ -172,8 +186,8 @@ func killAllStressorsHandler(w http.ResponseWriter, r *http.Request) {
 				log.Info("Killing the stressor with key [%d] manually.", pid)
 				fmt.Fprintf(w, "Process with pid [%d] has been killed successfully\n", pid)
 			} else {
-				fmt.Fprint(w, err.Error())
 				log.Error(err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
